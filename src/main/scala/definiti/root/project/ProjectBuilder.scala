@@ -9,15 +9,31 @@ import definiti.root.config.{Configuration, DependencyEntry}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.sys.process.Process
 
 class ProjectBuilder(configuration: Configuration, cache: Cache)(implicit actorSystem: ActorSystem) {
   import ProjectBuilder._
 
   implicit val executionContext: ExecutionContextExecutor = actorSystem.dispatcher
 
-  def build(): Future[Unit] = Future {
-    configuration.dependencies
-      .map(createSbtFile)
+  def build(): Future[Unit] = {
+    cache.projectHash.read()
+      .flatMap {
+        case Some(hash) if hash == configuration.hash => Future.successful(())
+        case _ =>
+          processBuild()
+            .map { _ => cache.projectHash.update(configuration.hash) }
+      }
+  }
+
+  private def processBuild(): Future[Unit] = {
+    val createSbtFileFuture = Future(configuration.dependencies.map(createSbtFile))
+    val createPluginFileFuture = Future(createPluginFile())
+    val projectBuilding = for {
+      _ <- createSbtFileFuture
+      _ <- createPluginFileFuture
+    } yield Unit
+    projectBuilding.flatMap(_ => assemble())
   }
 
   private def createSbtFile(dependencies: Seq[DependencyEntry]) = {
@@ -34,7 +50,7 @@ class ProjectBuilder(configuration: Configuration, cache: Cache)(implicit actorS
        |libraryDependencies += "org.antlr" % "antlr4-runtime" % "4.7"
        |${dependencies.map(buildSbtDependencyEntry).mkString("\n")}
        |
-       |resolvers += Resolver.mavenLocal
+       |enablePlugins(JavaAppPackaging)
        |
        |mainClass in Compile := Some("definiti.core.Boot")
      """.stripMargin
@@ -43,10 +59,25 @@ class ProjectBuilder(configuration: Configuration, cache: Cache)(implicit actorS
   private def buildSbtDependencyEntry(dependencyEntry: DependencyEntry): String = {
     s"""libraryDependencies += "${dependencyEntry.groupId}" %% "${dependencyEntry.artifactId}" % "${dependencyEntry.version}""""
   }
+
+  private def createPluginFile() = {
+    val fileContent = """addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.0")"""
+    val file = configuration.workingDirectory.resolve(projectDirectory).resolve(pluginFile)
+    Files.createDirectories(file.getParent)
+    Files.write(file, Seq(fileContent).asJava, StandardCharsets.UTF_8)
+  }
+
+  private def assemble(): Future[Unit] = Future {
+    val projectPath = configuration.workingDirectory.resolve(projectDirectory)
+    val sbtPath = configuration.workingDirectory.resolve("sbt").resolve("bin").resolve("sbt.bat")
+    Process(s"${sbtPath.toAbsolutePath} stage", projectPath.toFile).!
+  }
 }
 
 object ProjectBuilder {
   val projectDirectory = "project"
 
   val buildFile = "build.sbt"
+
+  val pluginFile = "project/plugins.sbt"
 }

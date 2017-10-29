@@ -20,3 +20,5 @@ libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.5" % "test"
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-language:implicitConversions", "-feature")
 
 publishTo := Some(Resolver.mavenLocal)
+
+enablePlugins(JavaAppPackaging)

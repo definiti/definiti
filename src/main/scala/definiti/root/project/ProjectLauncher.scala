@@ -1,5 +1,7 @@
 package definiti.root.project
 
+import java.nio.file.Paths
+
 import akka.actor.ActorSystem
 import definiti.root.config.Configuration
 
@@ -7,18 +9,16 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.sys.process.Process
 
 class ProjectLauncher(configuration: Configuration)(implicit actorSystem: ActorSystem) {
-  import ProjectBuilder._
+  import definiti.root.project.ProjectLauncher._
 
   implicit val executionContext: ExecutionContextExecutor = actorSystem.dispatcher
 
   def launch(): Future[Unit] = Future {
-    val projectPath = configuration.workingDirectory.resolve(projectDirectory)
-    val sbtPath = configuration.workingDirectory.resolve("sbt").resolve("bin").resolve("sbt.bat")
-    Process(s"${sbtPath.toAbsolutePath} run", projectPath.toFile).!
+    val binPath = configuration.workingDirectory.resolve(bin)
+    Process(s"${binPath} -Dconfig.file=definiti.conf", Paths.get(".").toFile).!
   }
 }
 
 object ProjectLauncher {
-  val projectDirectory = "project"
-  val sbtDirectory = "sbt"
+  val bin = "project/target/universal/stage/bin/project.bat"
 }

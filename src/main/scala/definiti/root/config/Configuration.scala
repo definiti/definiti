@@ -3,7 +3,8 @@ package definiti.root.config
 import java.nio.file.{Path, Paths}
 
 import com.typesafe.config.Config
-import definiti.root.utils.Validation
+import definiti.root.utils.{HashUtils, Validation}
+
 
 class Configuration(config: Config) {
   lazy val dependencies: Validation[Seq[DependencyEntry]] = new DependenciesConfiguration(config).load()
@@ -17,4 +18,6 @@ class Configuration(config: Config) {
   lazy val sourceDirectory: Path = Paths.get("src", "main", "resources", "samples", "src1")
 
   lazy val confFile: Path = Paths.get("definiti.conf")
+
+  lazy val hash: String = HashUtils.hashConfig(config)
 }

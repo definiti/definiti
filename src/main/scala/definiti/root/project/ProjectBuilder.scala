@@ -29,9 +29,11 @@ class ProjectBuilder(configuration: Configuration, cache: Cache)(implicit actorS
   private def processBuild(): Future[Unit] = {
     val createSbtFileFuture = Future(configuration.dependencies.map(createSbtFile))
     val createPluginFileFuture = Future(createPluginFile())
+    val createPropertiesFileFuture = Future(createPropertiesFile())
     val projectBuilding = for {
       _ <- createSbtFileFuture
       _ <- createPluginFileFuture
+      _ <- createPropertiesFileFuture
     } yield Unit
     projectBuilding.flatMap(_ => assemble())
   }
@@ -67,10 +69,19 @@ class ProjectBuilder(configuration: Configuration, cache: Cache)(implicit actorS
     Files.write(file, Seq(fileContent).asJava, StandardCharsets.UTF_8)
   }
 
+  private def createPropertiesFile() = {
+    val fileContent =
+      """
+        |sbt.version = 1.0.2
+        |""".stripMargin
+    val file = configuration.workingDirectory.resolve(projectDirectory).resolve(propertiesFile)
+    Files.createDirectories(file.getParent)
+    Files.write(file, Seq(fileContent).asJava, StandardCharsets.UTF_8)
+  }
+
   private def assemble(): Future[Unit] = Future {
     val projectPath = configuration.workingDirectory.resolve(projectDirectory)
-    val sbtPath = configuration.workingDirectory.resolve("sbt").resolve("bin").resolve("sbt.bat")
-    Process(s"${sbtPath.toAbsolutePath} stage", projectPath.toFile).!
+    Process(s"sbt stage", projectPath.toFile).!
   }
 }
 
@@ -80,4 +91,6 @@ object ProjectBuilder {
   val buildFile = "build.sbt"
 
   val pluginFile = "project/plugins.sbt"
+
+  val propertiesFile = "project/build.properties"
 }

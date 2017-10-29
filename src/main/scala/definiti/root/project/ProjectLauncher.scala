@@ -20,5 +20,5 @@ class ProjectLauncher(configuration: Configuration)(implicit actorSystem: ActorS
 }
 
 object ProjectLauncher {
-  val bin = "project/target/universal/stage/bin/project.bat"
+  val bin = "project/target/universal/stage/bin/project"
 }

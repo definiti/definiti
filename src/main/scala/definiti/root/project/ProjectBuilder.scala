@@ -49,6 +49,8 @@ class ProjectBuilder(configuration: Configuration, cache: Cache)(implicit actorS
     s"""
        |scalaVersion := "2.12.1"
        |
+       |resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+       |
        |libraryDependencies += "org.antlr" % "antlr4-runtime" % "4.7"
        |${dependencies.map(buildSbtDependencyEntry).mkString("\n")}
        |

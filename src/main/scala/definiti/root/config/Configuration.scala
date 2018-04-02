@@ -3,21 +3,15 @@ package definiti.root.config
 import java.nio.file.{Path, Paths}
 
 import com.typesafe.config.Config
-import definiti.root.utils.{HashUtils, Validation}
-
 
 class Configuration(config: Config) {
-  lazy val dependencies: Validation[Seq[DependencyEntry]] = new DependenciesConfiguration(config).load()
-
   lazy val workingDirectory: Path = Paths.get(".definiti")
 
-  lazy val projectDirectory: Path = workingDirectory.resolve("project")
+  lazy val dependenciesDirectory: Path = workingDirectory.resolve("dependencies")
 
-  lazy val apiVersion: String = "latest"
+  lazy val jarDependenciesDirectory: Path = dependenciesDirectory.resolve("jars")
 
-  lazy val sourceDirectory: Path = Paths.get("src", "main", "resources", "samples", "src1")
+  lazy val apiVersion: String = config.getString("definiti.api.version")
 
-  lazy val confFile: Path = Paths.get("definiti.conf")
-
-  lazy val hash: String = HashUtils.hashConfig(config)
+  lazy val dependencies: Seq[DependencyEntry] = new DependenciesConfiguration(config).load()
 }

@@ -2,8 +2,6 @@
 
 set -e
 
-DOCKER_IMAGE=definiti/definiti:0.3.0-SNAPSHOT
-
 # Highlight
 CODE='\033[0;97m'
 STRONG='\033[0;94m'
@@ -20,8 +18,8 @@ main() {
   askLanguages languages
   askPlugins plugins
 
-  writeNutFile
-  writeDefinitiFile ${version} ${languages} ${plugins}
+  writeScriptFile ${version}
+  writeConfFile ${version} ${languages} ${plugins}
 
   echo -e "\n"
   echo -e "${STRONG}Installation completed!${END}"
@@ -114,29 +112,22 @@ askPlugins() {
   eval $1="'${_result}'"
 }
 
-writeNutFile() {
-  cat > nut.yml <<EOT
-syntax_version: "7"
-project_name: nut
+# writeScriptFile version
+writeScriptFile() {
+  local version=$1
 
-docker_image: ${DOCKER_IMAGE}
+  cat > definiti <<EOT
+#!/bin/bash
 
-macros:
-  run:
-    usage: Run the compiler with configuration from "definiti.conf"
+set -e
 
-volumes:
-  main:
-    host_path: .
-    container_path: /definiti
-
-container_working_directory: /definiti
-work_in_project_folder_as: /definiti
+docker run --rm --interactive -v \${PWD}:/definiti -w /definiti definiti/definiti:${version} definiti
 EOT
+  chmod +x definiti
 }
 
-# writeDefinitiFile version languages plugins
-writeDefinitiFile() {
+# writeConfFile version languages plugins
+writeConfFile() {
   local version=$1
   local languages=$2
   local plugins=$3

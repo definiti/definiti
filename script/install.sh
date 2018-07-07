@@ -9,7 +9,7 @@ CODE='\033[0;97m'
 STRONG='\033[0;94m'
 END='\033[0m'
 
-function main {
+main() {
   local version
   local languages
   local plugins
@@ -30,7 +30,7 @@ function main {
   howToContinue
 }
 
-function introduction {
+introduction() {
   echo -e "Installation of ${STRONG}Definiti${END}"
   echo ""
   echo -e "You will be asked some questions before executing the installation"
@@ -38,7 +38,7 @@ function introduction {
   echo ""
 }
 
-function askCoreVersion {
+askCoreVersion() {
   echo -e "${STRONG}Which version do you want to use?${END}"
   echo -e "Available versions:"
   echo -e "- ${CODE}0.3.0-SNAPSHOT${END} (beta)"
@@ -58,7 +58,7 @@ function askCoreVersion {
   done
 }
 
-function askLanguages {
+askLanguages() {
   echo -e "${STRONG}Which languages do you want to use?${END}"
   echo -e "Available languages:"
   echo -e "- ${CODE}scala${END}"
@@ -86,7 +86,7 @@ function askLanguages {
   eval $1="'${_result}'"
 }
 
-function askPlugins {
+askPlugins() {
   echo -e "${STRONG}Which plugins do you want to use?${END}"
   echo -e "Available plugins:"
   echo -e "- ${CODE}tests${END}"
@@ -114,7 +114,7 @@ function askPlugins {
   eval $1="'${_result}'"
 }
 
-function writeNutFile {
+writeNutFile() {
   cat > nut.yml <<EOT
 syntax_version: "7"
 project_name: nut
@@ -136,7 +136,7 @@ EOT
 }
 
 # writeDefinitiFile version languages plugins
-function writeDefinitiFile {
+writeDefinitiFile() {
   local version=$1
   local languages=$2
   local plugins=$3
@@ -171,7 +171,7 @@ EOT
 }
 
 # createDependencies version languages plugins
-function createDependencies {
+createDependencies() {
   local version=$1
   local languages=$2
   local plugins=$3
@@ -200,7 +200,7 @@ function createDependencies {
 }
 
 # createGenerators languages plugins
-function createGenerators {
+createGenerators() {
   local languages=$1
   local plugins=$2
 
@@ -224,7 +224,7 @@ function createGenerators {
 }
 
 # createContexts plugins
-function createContexts {
+createContexts() {
   local plugins=$1
 
   if [[ ${plugins} = *";tests;"* ]]; then
@@ -232,7 +232,7 @@ function createContexts {
   fi
 }
 
-function howToInstallNut {
+howToInstallNut() {
   echo -e ""
   echo -e "${STRONG}====================${END}"
   echo -e "${STRONG}=${END} You also need to install ${CODE}nut${END} to use ${CODE}Definiti${END}"
@@ -243,7 +243,7 @@ function howToInstallNut {
   echo -e ""
 }
 
-function howToContinue {
+howToContinue() {
   echo -e ""
   echo -e "How to use Definiti:"
   echo -e "- Write your code inside ${CODE}src/main/definiti${END}"

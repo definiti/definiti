@@ -5,7 +5,6 @@ import java.nio.file.Paths
 import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import definiti.root.cache.Cache
 import definiti.root.config.Configuration
 
 import scala.concurrent.ExecutionContextExecutor
@@ -23,11 +22,7 @@ object Boot {
 
     val config = ConfigFactory.parseFile(Paths.get("definiti.conf").toFile)
     val configuration = new Configuration(config)
-    val cache = new Cache(configuration)
-    val projectProcessor = new ProjectProcessor(
-      configuration,
-      cache
-    )
+    val projectProcessor = new ProjectProcessor(configuration)
     projectProcessor.run()
       .andThen {
         case Success(_) => logger.info("done")
